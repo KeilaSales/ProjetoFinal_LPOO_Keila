@@ -60,3 +60,87 @@ As regras de negócio descrevem as políticas operacionais da Associação (ALU)
   * De 16 a 30 alunos alocados no turno específico: Sugerir **Micro-ônibus**.
   * De 31 a 45 alunos alocados no turno específico: Sugerir **Ônibus** (Capacidade 45).
   * Acima de 45 alunos: Combinar os veículos de forma incremental e somatória (Exemplo: 60 alunos = 1 Ônibus + 1 Van).
+
+## 3. Diagrama de Casos de Uso
+
+### 3.1 Representação Visual do Sistema
+
+<p align="center">
+  <img src="diagrama_casos_uso.png" alt="Diagrama de Casos de Uso" width="600">
+</p>
+
+### 3.2 Documentação Textual dos Casos de Uso
+
+#### UC01 – Manter Cadastro de Associado
+* **Atores:** Estudante Associado e Administrador.
+* **Pré-condições:** Nenhuma para autocadastro; estar autenticado como Administrador para alterações e exclusões.
+* **Fluxo Principal:**
+  1. O usuário acede à opção de gestão de cadastro de associados.
+  2. Para novos alunos, o sistema solicita os dados pessoais (Nome, CPF, Matrícula, Tipo de Associado: Novo/Antigo, Senha).
+  3. O usuário preenche os dados e confirma.
+  4. O sistema valida se o CPF é único e se os campos obrigatórios estão preenchidos.
+  5. O sistema persiste as informações na tabela de associados do PostgreSQL.
+* **Fluxos Alternativos / Exceções:**
+  * **FA01 - CPF Já Cadastrado:** O sistema alerta que o utilizador já possui uma conta e interrompe a operação.
+  * **FA02 - Exclusão/Cancelamento por Administrador:** O Administrador pesquisa o associado e altera o seu estado para "Inativo" ou remove o registo, caso permitido pelas regras internas da associação.
+* **Pós-condições:** O perfil do estudante fica disponível no banco de dados para a realização de logins e inscrições.
+
+#### UC02 – Solicitar Inscrição em Transporte
+* **Atores:** Estudante Associado e Administrador.
+* **Pré-condições:** O estudante deve estar devidamente cadastrado e autenticado no sistema. O período de inscrições determinado pela diretoria deve estar aberto.
+* **Fluxo Principal:**
+  1. O Associado seleciona a opção "Solicitar Inscrição de Transporte".
+  2. O sistema pesquisa e exibe as rotas ativas (ex: Lagoa Vermelha x Passo Fundo).
+  3. O Associado escolhe a rota pretendida.
+  4. O Associado informa a quantidade de dias da semana em que utilizará o serviço (1 a 5 dias).
+  5. O Associado define, de forma independente, o Turno de Ida e o Turno de Volta.
+  6. O sistema executa automaticamente a inclusão do **UC03 (Calcular Mensalidade Progressiva)**.
+  7. O sistema apresenta o resumo da inscrição com o valor da mensalidade base e a taxa semestral injetada.
+  8. O Associado confirma e finaliza a operação.
+  9. O sistema grava a inscrição com o estado "ATIVA" e emite um comprovativo no ecrã.
+* **Fluxos Alternativos / Exceções:**
+  * **FA01 - Período de Inscrição Regular Encerrado:** Se o prazo configurado pela diretoria tiver expirado, o sistema bloqueia o formulário e exibe a mensagem de que novas inscrições por canais regulares não são permitidas.
+* **Pós-condições:** A inscrição é gravada com sucesso no PostgreSQL vinculada ao aluno, atualizando os dados globais das frotas.
+
+#### UC03 – Calcular Mensalidade Progressiva (Included)
+* **Atores:** Sistema.
+* **Pré-condições:** Disparado obrigatoriamente a partir do UC02 ou UC06.
+* **Fluxo Principal:**
+  1. O sistema lê o atributo de quantidade de dias da semana escolhidos na inscrição.
+  2. O sistema invoca o padrão de projeto *Strategy*, direcionando para a classe de cálculo correspondente (EstrategiaUmDia, EstrategiaDoisDias, etc.).
+  3. O algoritmo calcula o valor fixo mensal progressivo (1 dia: R$ 280; 2 dias: R$ 240; 3 dias: R$ 200; 4 dias: R$ 180; 5 dias: R$ 160).
+  4. O sistema verifica o tipo do associado logado ("NOVO" ou "ANTIGO").
+  5. É injetada a taxa semestral correspondente (Matrícula: R$ 200 para novos; Rematrícula: R$ 80 para antigos).
+  6. O sistema devolve o montante calculado da mensalidade base e taxas para o caso de uso chamador.
+* **Pós-condições:** Os valores financeiros da inscrição são calculados com precisão e associados ao contrato do aluno.
+
+#### UC04 – Monitorar Alocação de Frota
+* **Atores:** Diretoria (Tesoureiro) e Administrador.
+* **Pré-condições:** Usuário administrativo autenticado no sistema.
+* **Fluxo Principal:**
+  1. O utilizador acede à **Tela de Monitoramento**.
+  2. O sistema realiza um agrupamento (Query SQL) somando todos os alunos ativos divididos por dia da semana e por turno (Ida/Volta).
+  3. O sistema exibe os totais consolidados no ecrã para a diretoria.
+  4. Com base na **RN002**, o sistema exibe uma recomendação automática do tipo de veículo ideal para cada turno (Até 15 alunos: Van; 16 a 30: Micro-ônibus; 31 a 45: Ônibus).
+* **Pós-condições:** A diretoria obtém os dados exatos para a contratação e otimização dos veículos junto às empresas de transporte.
+
+#### UC05 – Emitir Relatório de Arrecadação
+* **Atores:** Diretoria (Tesoureiro).
+* **Pré-condições:** Usuário financeiro autenticado no sistema.
+* **Fluxo Principal:**
+  1. O Tesoureiro seleciona a opção "Relatório de Arrecadação Semestral/Mensal".
+  2. O sistema pesquisa todas as inscrições que possuem o estado "ATIVA".
+  3. O sistema calcula o somatório total das mensalidades base que entrarão no mês corrente, mais o acumulado das taxas de adesão do semestre.
+  4. O sistema gera e exibe um demonstrativo financeiro detalhado com a previsão total de receita da ALU.
+* **Pós-condições:** O relatório financeiro é gerado no ecrã para conferência orçamental da tesouraria.
+
+#### UC06 – Alterar Inscrição Fora do Prazo (Extended)
+* **Atores:** Administrador.
+* **Pré-condições:** Administrador autenticado; período regular de inscrições dos alunos deve estar encerrado (condição de extensão).
+* **Fluxo Principal:**
+  1. O Administrador acede à ficha da inscrição de um estudante específico.
+  2. O sistema abre os campos de dias da semana e turnos que estavam bloqueados para o aluno.
+  3. O Administrador realiza as modificações necessárias solicitadas pela coordenação.
+  4. O sistema executa o **UC03** para recalcular os novos valores contratuais utilizando o *Strategy*.
+  5. O Administrador confirma a alteração forçada.
+* **Pós-condições:** A inscrição é atualizada no banco de dados com os novos parâmetros e valores definidos pelo administrador.

@@ -7,15 +7,15 @@ class Inscricao:
                  turno_ida=None, turno_volta=None, dias_semana=0, status="ATIVA"):
         """
         Une o Associado à sua rota e turnos escolhidos.
-        Permite turnos de ida e volta diferentes (Ex: vai de Tarde e volta de Noite).
+        Permite turnos de ida e volta diferentes.
         """
         self.id_inscricao = id_inscricao
-        self.associado = associado        # Objeto do Associado
-        self.rota = rota                  # Objeto da Rota (Destino)
-        self.turno_ida = turno_ida        # Ex: "TARDE" ou "NOITE"
-        self.turno_volta = turno_volta    # Ex: "TARDE" ou "NOITE"
-        self.dias_semana = dias_semana    # Quantidade de dias (1 a 5)
-        self.status = status              # "ATIVA" ou "CANCELADA"
+        self.associado = associado       
+        self.rota = rota                 
+        self.turno_ida = turno_ida        
+        self.turno_volta = turno_volta    
+        self.dias_semana = dias_semana   
+        self.status = status           
         self.valor_mensalidade = 0.0
         
         if dias_semana > 0 and associado is not None:
