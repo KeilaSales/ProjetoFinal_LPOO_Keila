@@ -4,9 +4,10 @@ from model.Associado import Associado
 class AssociadoDAO:
     
     def salvar(self, associado: Associado):
+        
         sql = """
-            INSERT INTO associado (nome, cpf, matricula, tipo_associado, senha)
-            VALUES (%s, %s, %s, %s, %s);
+            INSERT INTO associado (nome, cpf, matricula, telefone, tipo_associado, senha)
+            VALUES (%s, %s, %s, %s, %s, %s);
         """
         conexao = Database.conectar()
         if conexao:
@@ -16,6 +17,7 @@ class AssociadoDAO:
                     associado.nome, 
                     associado.cpf, 
                     associado.matricula, 
+                    associado.telefone,  
                     associado.tipo_associado, 
                     associado.senha
                 ))
@@ -28,22 +30,24 @@ class AssociadoDAO:
                 conexao.close()
 
     def buscar_por_cpf(self, cpf: str):
-        sql = "SELECT id_associado, nome, matricula, cpf, telefone, tipo_associado, senha FROM associado WHERE cpf = %s;"
+        # Adicionamos o telefone no SELECT
+        sql = "SELECT nome, cpf, matricula, telefone, tipo_associado, senha FROM associado WHERE cpf = %s;"
         conexao = Database.conectar()  
         if conexao:
             try:
                 cursor = conexao.cursor()
                 cursor.execute(sql, (cpf,))
                 resultado = cursor.fetchone()
+                
                 if resultado:
+                    # Mapeamos as 6 colunas retornadas do banco na ordem correta
                     return Associado(
-                        id_associado=resultado, 
-                        nome=resultado, 
-                        matricula=resultado, 
-                        cpf=resultado, 
-                        telefone=resultado, 
-                        tipo_associado=resultado,
-                        senha=resultado
+                        nome=resultado[0], 
+                        cpf=resultado[1], 
+                        matricula=resultado[2], 
+                        telefone=resultado[3],  # Pegando o telefone do banco
+                        tipo_associado=resultado[4],
+                        senha=resultado[5]
                     )
                 return None
             except Exception as e:

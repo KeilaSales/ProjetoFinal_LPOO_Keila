@@ -10,6 +10,7 @@ def executar_teste():
         nome="Keila de Sales", 
         cpf="123.456.789-00", 
         matricula="20261010", 
+        telefone="(54) 99999-9999", 
         tipo_associado="NOVO", 
         senha="senha_da_keila_123" 
     )
