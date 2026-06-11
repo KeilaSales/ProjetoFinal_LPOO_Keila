@@ -66,7 +66,7 @@ As regras de negócio descrevem as políticas operacionais da Associação (ALU)
 ### 3.1 Representação Visual do Sistema
 
 <p align="center">
-  <img src="diagrama_casos_uso.png" alt="Diagrama de Casos de Uso" width="600">
+  <img src="diagrama_casos_uso.jpg" alt="Diagrama de Casos de Uso" width="600">
 </p>
 
 ### 3.2 Documentação Textual dos Casos de Uso
@@ -144,3 +144,21 @@ As regras de negócio descrevem as políticas operacionais da Associação (ALU)
   4. O sistema executa o **UC03** para recalcular os novos valores contratuais utilizando o *Strategy*.
   5. O Administrador confirma a alteração forçada.
 * **Pós-condições:** A inscrição é atualizada no banco de dados com os novos parâmetros e valores definidos pelo administrador.
+
+## 4. Diagrama de Classes
+
+### 4.1 Representação Visual do Sistema
+
+<p align="center">
+  <img src="diagrama_classes.jpg" alt="Diagrama de Casos de Uso" width="600">
+</p>
+
+### 4.2 Documentação Estrutural e Padrões de Projeto
+O Diagrama de Classes consolida o modelo de dados relacional e a separação de responsabilidades em conformidade com as regras de negócio da associação:
+
+* **Relação Muitos para Muitos::** Mapeia o vínculo entre Associado e Rota. Como um estudante pode utilizar múltiplas rotas ao longo da semana e uma rota atende a centenas de alunos, essa cardinalidade é resolvida através da classe de associação Inscrição.
+
+* **Encapsulamento da Inscrição::** A classe Inscrição centraliza as propriedades do contrato de transporte (turno de ida/volta, dias da semana e valores) e gerencia dinamicamente o cálculo financeiro delegando a responsabilidade para a camada comportamental.
+
+
+* **Aplicação do Padrão Strategy::** O cálculo progressivo de mensalidades da RN001 foi isolado por meio do padrão Strategy. A interface abstrata CalculoMensalidadeStrategy define a assinatura calcular() , enquanto as classes concretas CalculoRegularStrategy e CalculoSocialStrategy encapsulam seus respectivos algoritmos matemáticos.
