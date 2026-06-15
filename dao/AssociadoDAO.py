@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from model.Associado import Associado
 from dao.db_config import DatabaseConfig
-from dao.generic_dao import GenericDAO
+from dao.Generic_dao import GenericDAO
 
 class AssociadoDAO(GenericDAO):
     def __init__(self):
