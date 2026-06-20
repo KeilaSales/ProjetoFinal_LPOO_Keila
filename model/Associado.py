@@ -1,5 +1,5 @@
 class Associado:
-    def __init__(self, id_associado=None, nome=None, matricula=None, cpf=None, telefone=None, tipo_associado="NOVO", senha=None):
+    def __init__(self, id_associado=None, nome=None, matricula=None, cpf=None, telefone=None, tipo_associado="NOVO", dias_semana = None):
         """
         NOVO ( matrícula) e ANTIGO (rematrícula)
         """  
@@ -9,4 +9,6 @@ class Associado:
         self.cpf = cpf
         self.telefone = telefone
         self.tipo_associado = tipo_associado  
-        self.senha = senha 
+        self.dias_semana = dias_semana
+        self.turno_ida = "Noite"       
+        self.turno_volta = "Noite"

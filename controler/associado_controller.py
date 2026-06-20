@@ -8,15 +8,27 @@ class AssociadoController:
 
     def cadastrar_universitario(self, nome, cpf, faculdade, matricula, telefone, vinculo, dias_selecionados, turno_ida="Noite", turno_volta="Noite"):
         identificacao_academica = f"{faculdade} - Matrícula: {matricula}"
+
+        # --- ATUALIZAÇÃO PARA USAR APENAS A SIGLA (ABREVIAÇÃO) ---
+        faculdade_texto = str(faculdade)
+        if "(" in faculdade_texto and ")" in faculdade_texto:
+            # Captura o texto que está entre os parênteses (ex: UPF, IMED)
+            sigla = faculdade_texto.split("(")[1].split(")")[0].strip()
+        else:
+            sigla = faculdade_texto
+            
+        identificacao_academica = f"{sigla} - Matr.: {matricula}"  
+        
         string_dias = ",".join(dias_selecionados)
         
+        # --- ATUALIZAÇÃO DO CONSTRUTOR DO ASSOCIADO ---
         universitario = Associado(
             nome=nome,
             cpf=cpf,
             matricula=identificacao_academica,
             telefone=telefone,
             tipo_associado=vinculo,
-            senha=string_dias
+            dias_semana=string_dias # 🎯 TROQUE APENAS ESSA LINHA! (senha vira dias_semana)
         )
         # Adiciona os turnos escolhidos no objeto antes de enviar ao DAO
         universitario.turno_ida = turno_ida

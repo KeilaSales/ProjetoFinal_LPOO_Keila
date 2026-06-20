@@ -2,6 +2,8 @@ import tkinter as tk
 from controler.associado_controller import AssociadoController
 from view.inscricao_usuario_view import InscricaoUsuarioView
 from view.gerenciamento_fretamento_view import GerenciamentoFretamentoView
+# Mantenha os seus imports normais e adicione esta linha abaixo deles:
+from view.gerenciamento_associado_view import GerenciamentoAssociadoView
 
 class AplicacaoPrincipal:
     def __init__(self, root):
@@ -21,12 +23,10 @@ class AplicacaoPrincipal:
         barra_menu.add_cascade(label="Inscrição", menu=menu_inscricao)
         menu_inscricao.add_command(label="Realizar Nova Inscrição", command=self.abrir_portal_estudante)
 
-
-
         menu_admin = tk.Menu(barra_menu, tearoff=0)
         barra_menu.add_cascade(label="Administrador", menu=menu_admin)
-        menu_admin.add_command(label="Painel de Controle da Diretoria", command=self.abrir_painel_diretoria)
-
+        menu_admin.add_command(label="👥 Gerenciar Universitários (Editar/Remover)", command=self.abrir_painel_associados)
+        menu_admin.add_command(label="🚌 Logística de Frota (Fretamento)", command=self.abrir_painel_diretoria)
         # Texto de Boas-Vindas da Janela Inicial
         tk.Label(self.root, text="Bem-vindo ao Sistema de Transporte!", font=("Arial", 16, "bold"), fg="#1a365d").pack(pady=40)
         tk.Label(self.root, text="Use a barra de menus acima para navegar:", font=("Arial", 12)).pack(pady=10)
@@ -37,10 +37,14 @@ class AplicacaoPrincipal:
     def abrir_portal_estudante(self):
         # Aciona o pop-up rebatizado do aluno
         InscricaoUsuarioView(self.root, self.controller)
+    
+    
     def abrir_painel_diretoria(self):
         # Chama direto a View da Diretoria. A View se encarrega de pedir a senha!
         GerenciamentoFretamentoView(self.root, self.controller)
-
+    
+    def abrir_painel_associados(self):
+        GerenciamentoAssociadoView(self.root, self.controller)
 
 
 if __name__ == "__main__":

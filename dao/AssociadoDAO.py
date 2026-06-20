@@ -59,7 +59,14 @@ class AssociadoDAO(GenericDAO):
             # Converte a lista de tuplas do Postgres em uma lista de objetos Associado
             associados = []
             for linha in linhas:
-                obj = Associado(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5])
+                obj = Associado(
+                    nome=linha[0],
+                    cpf=linha[1],
+                    matricula=linha[2],
+                    telefone=linha[3],
+                    tipo_associado=linha[4],
+                    dias_semana=linha[5]
+                )
                 obj.turno_ida = linha[6]
                 obj.turno_volta = linha[7]
                 associados.append(obj)
@@ -84,7 +91,14 @@ class AssociadoDAO(GenericDAO):
             linha = cursor.fetchone()
             
             if linha:
-                novo_associado = Associado(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5])
+                novo_associado = Associado(
+                    nome=linha[0],
+                    cpf=linha[1],
+                    matricula=linha[2],
+                    telefone=linha[3],
+                    tipo_associado=linha[4],
+                    dias_semana=linha[5]
+                )
                 novo_associado.turno_ida = linha[6]
                 novo_associado.turno_volta = linha[7]
                 return novo_associado
@@ -104,18 +118,20 @@ class AssociadoDAO(GenericDAO):
         cursor = None
         sql = """
             UPDATE associado 
-            SET nome = %s, matricula = %s, telefone = %s, tipo_associado = %s, senha = %s 
+            SET nome = %s,dias_semana = %s, telefone = %s, turno_ida = %s, turno_volta = %s
             WHERE cpf = %s;
         """
         try:
             cursor = self.conexao.cursor()
             cursor.execute(sql, (
-                associado.nome, 
-                associado.matricula, 
-                associado.telefone, 
-                associado.tipo_associado, 
-                associado.senha,
+                associado.nome,
+                associado.dias_semana,
+                associado.telefone,
+                associado.turno_ida,  
+                associado.turno_volta,
                 associado.cpf
+
+                
             ))
             self.conexao.commit()
             return True, "Dados do associado atualizados com sucesso"
