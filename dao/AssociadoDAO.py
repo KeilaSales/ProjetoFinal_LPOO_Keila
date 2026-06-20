@@ -18,8 +18,8 @@ class AssociadoDAO(GenericDAO):
             
         cursor = None
         sql = """
-            INSERT INTO associado (nome, cpf, matricula, telefone, tipo_associado, senha)
-            VALUES (%s, %s, %s, %s, %s, %s);
+            INSERT INTO associado (nome, cpf, matricula, telefone, tipo_associado, dias_semana, turno_ida, turno_volta)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
         try:
             cursor = self.conexao.cursor()
@@ -29,7 +29,9 @@ class AssociadoDAO(GenericDAO):
                 associado.matricula, 
                 associado.telefone,
                 associado.tipo_associado, 
-                associado.senha
+                associado.dias_semana,
+                associado.turno_ida,  
+                associado.turno_volta
             ))
             self.conexao.commit()
             print("Associado salvo com sucesso no banco!")
@@ -48,7 +50,7 @@ class AssociadoDAO(GenericDAO):
             return []
             
         cursor = None
-        sql = "SELECT nome, cpf, matricula, telefone, tipo_associado, senha FROM associado ORDER BY nome;"
+        sql = "SELECT nome, cpf, matricula, telefone, tipo_associado, dias_semana, turno_ida, turno_volta FROM associado ORDER BY nome;"
         try:
             cursor = self.conexao.cursor()
             cursor.execute(sql)
@@ -58,6 +60,8 @@ class AssociadoDAO(GenericDAO):
             associados = []
             for linha in linhas:
                 obj = Associado(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5])
+                obj.turno_ida = linha[6]
+                obj.turno_volta = linha[7]
                 associados.append(obj)
             return associados
         except Exception as e:
@@ -73,14 +77,17 @@ class AssociadoDAO(GenericDAO):
             return None
             
         cursor = None
-        sql = "SELECT nome, cpf, matricula, telefone, tipo_associado, senha FROM associado WHERE cpf = %s;"
+        sql = "SELECT nome, cpf, matricula, telefone, tipo_associado, dias_semana, turno_ida, turno_volta FROM associado WHERE cpf = %s;"
         try:
             cursor = self.conexao.cursor()
             cursor.execute(sql, (cpf,))
             linha = cursor.fetchone()
             
             if linha:
-                return Associado(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5])
+                novo_associado = Associado(linha[0], linha[1], linha[2], linha[3], linha[4], linha[5])
+                novo_associado.turno_ida = linha[6]
+                novo_associado.turno_volta = linha[7]
+                return novo_associado
             return None
         except Exception as e:
             print(f"Erro ao buscar associado por CPF: {e}")
