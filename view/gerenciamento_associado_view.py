@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
-from model.Associado import Associado  # 🎯 IMPORT ESSENCIAL ADICIONADO AQUI!
+from model.Associado import Associado  
+from view.gerenciamento_fretamento_view import GerenciamentoFretamentoView
 
 class GerenciamentoAssociadoView:
     def __init__(self, root, controller):
@@ -29,7 +30,7 @@ class GerenciamentoAssociadoView:
         btn_sair.pack(pady=5)
 
     def validar_senha_admin(self):
-        if self.txt_senha.get() == "alu123":
+        if self.txt_senha.get() == "diretoria123":
             self.janela_login.destroy()
             self.inicializar_tela_associados()
         else:
@@ -45,6 +46,30 @@ class GerenciamentoAssociadoView:
         
         tk.Label(self.window, text="Universitários Cadastrados na Associação", font=("Arial", 14, "bold"), fg="#1a365d").pack(pady=10)
         
+        frame_busca = tk.Frame(self.window)
+        frame_busca.pack(pady=5, fill=tk.X, padx=20)
+        
+        tk.Label(frame_busca, text="🔍 Pesquisar por Nome:", font=("Arial", 10, "bold")).pack(side=tk.LEFT, padx=5)
+        self.txt_busca = tk.Entry(frame_busca, font=("Arial", 10), width=35)
+        self.txt_busca.pack(side=tk.LEFT, padx=5)
+        
+        def filtrar_por_nome(event):
+            termo = self.txt_busca.get().lower().strip()
+            for row in self.tabela.get_children():
+                self.tabela.delete(row)
+            try:
+                lista = self.controller.buscar_todos()
+                for u in lista:
+                    if termo in u.nome.lower():
+                        qtd_dias = len(str(u.dias_semana).split(",")) if u.dias_semana else 1
+                        valor_base = 120.00 if str(u.tipo_associado).upper() == "ANTIGO" else 150.00
+                        mensalidade_final = valor_base * qtd_dias
+                        self.tabela.insert("", tk.END, values=(u.nome, u.cpf, u.matricula, u.telefone, u.tipo_associado, u.dias_semana, f"R$ {mensalidade_final:.2f}"))
+            except Exception as e:
+                print(f"Erro ao filtrar: {e}")
+
+        self.txt_busca.bind("<KeyRelease>", filtrar_por_nome)
+
         colunas = ("Nome", "CPF", "Acadêmico", "Telefone", "Vínculo", "Dias", "Mensalidade")
         self.tabela = ttk.Treeview(self.window, columns=colunas, show="headings", height=12)
         
@@ -68,6 +93,7 @@ class GerenciamentoAssociadoView:
         frame_botoes = tk.Frame(self.window)
         frame_botoes.pack(pady=15)
         
+        tk.Button(frame_botoes, text="Ver Frota (Logística por Turno)", font=("Arial", 9, "bold"), bg="#34495e", fg="white", width=26, command=self.abrir_fretamento_direto).pack(side=tk.LEFT, padx=5)
         tk.Button(frame_botoes, text="Editar Cadastro", font=("Arial", 9, "bold"), bg="#f39c12", fg="white", width=16, command=self.editar_cadastro).pack(side=tk.LEFT, padx=5)
         tk.Button(frame_botoes, text="Cancelar Matrícula", font=("Arial", 9, "bold"), bg="#e74c3c", fg="white", width=16, command=self.remover).pack(side=tk.LEFT, padx=5)
         tk.Button(frame_botoes, text="Fechar", font=("Arial", 9), width=12, command=self.window.destroy).pack(side=tk.LEFT, padx=5)
@@ -88,6 +114,9 @@ class GerenciamentoAssociadoView:
                     self.tabela.insert("", tk.END, values=(u.nome, u.cpf, u.matricula, u.telefone, u.tipo_associado, u.dias_semana, f"R$ {mensalidade_final:.2f}"))
         except Exception as e:
             print(f"Erro ao preencher a tabela: {e}")
+
+    def abrir_fretamento_direto(self):
+        GerenciamentoFretamentoView(self.window, self.controller)
 
     def editar_cadastro(self):
         selecao = self.tabela.selection()

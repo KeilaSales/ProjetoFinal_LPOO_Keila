@@ -93,8 +93,8 @@ class InscricaoUsuarioView:
         if not cpf.isdigit() or len(cpf) != 11:
             messagebox.showwarning("Erro de CPF", "O campo CPF deve conter exatamente 11 dígitos numéricos!")
             return
-        if not matricula.isdigit():
-            messagebox.showwarning("Erro", "O campo Nº Matrícula deve conter apenas números!")
+        if not matricula.replace(".", "").replace("-", "").replace(" ", "").isalnum():
+            messagebox.showwarning("Erro", "O campo Nº Matrícula deve conter apenas caracteres válidos!")
             return
         if not telefone.isdigit() or len(telefone) < 9:
             messagebox.showwarning("Erro de Telefone", "O campo Telefone deve conter no mínimo 9 dígitos numéricos!")
@@ -105,7 +105,10 @@ class InscricaoUsuarioView:
 
         info_turnos = f"Ida: {self.cb_ida.get()} | Volta: {self.cb_volta.get()}"
         
-        sucesso, resultado = self.controller.cadastrar_universitario(nome, cpf, self.cb_faculdade.get(), matricula, telefone, vinculo, dias)
+        sucesso, resultado = self.controller.cadastrar_universitario(
+            nome, cpf, self.cb_faculdade.get(), matricula, telefone, vinculo, dias,
+            turno_ida=self.cb_ida.get(), turno_volta=self.cb_volta.get()
+            )
         
         if sucesso:
             termo_tax = "Taxa de Rematrícula" if vinculo == "ANTIGO" else "Taxa de Inscrição/Matrícula"

@@ -26,11 +26,10 @@ class AplicacaoPrincipal:
         menu_admin = tk.Menu(barra_menu, tearoff=0)
         barra_menu.add_cascade(label="Administrador", menu=menu_admin)
         menu_admin.add_command(label="👥 Gerenciar Universitários (Editar/Remover)", command=self.abrir_painel_associados)
-        menu_admin.add_command(label="🚌 Logística de Frota (Fretamento)", command=self.abrir_painel_diretoria)
         # Texto de Boas-Vindas da Janela Inicial
         tk.Label(self.root, text="Bem-vindo ao Sistema de Transporte!", font=("Arial", 16, "bold"), fg="#1a365d").pack(pady=40)
         tk.Label(self.root, text="Use a barra de menus acima para navegar:", font=("Arial", 12)).pack(pady=10)
-        tk.Label(self.root, text="Menu Inscrição -> Realizar Nova Inscrição\nMenu Administrador -> Painel de Controle (Diretoria)", font=("Arial", 11, "italic"), fg="#4a5568").pack(pady=10)
+        tk.Label(self.root, text="Inscrição -> Realizar Nova Inscrição\nAdministrador -> Gerenciar Universitários/Frota (Diretoria)", font=("Arial", 11, "italic"), fg="#4a5568").pack(pady=10)
         
 
         

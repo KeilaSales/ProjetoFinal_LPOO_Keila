@@ -10,7 +10,7 @@ class DatabaseConfig:
                 password="postgres", 
                 host="localhost",
                 port="5432",
-                database="Sistema_Transporte"
+                database="lpoo_projeto_keila"
             )
             return conexao
         except Error as e:

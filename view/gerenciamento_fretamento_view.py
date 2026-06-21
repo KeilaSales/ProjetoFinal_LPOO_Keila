@@ -5,35 +5,7 @@ class GerenciamentoFretamentoView:
     def __init__(self, root, controller):
         self.root = root
         self.controller = controller
-        # 🎯 BARREIRA DE SEGURANÇA: Só abre com senha da diretoria
-        self.solicitar_acesso_diretoria()
-
-    def solicitar_acesso_diretoria(self):
-        self.janela_login = tk.Toplevel(self.root)
-        self.janela_login.title("Segurança - Diretoria de Logística")
-        self.janela_login.geometry("360x240")
-        self.janela_login.resizable(False, False)
-        self.janela_login.transient(self.root)
-        self.janela_login.grab_set()
-        
-        tk.Label(self.janela_login, text="Área Restrita: Diretoria de Logística", font=("Arial", 11, "bold"), fg="#1a365d").pack(pady=15)
-        tk.Label(self.janela_login, text="Digite a Senha de Fretamento:", font=("Arial", 10)).pack(pady=2)
-        
-        self.txt_senha = tk.Entry(self.janela_login, show="*", width=22, font=("Arial", 10))
-        self.txt_senha.pack(pady=10)
-        
-        btn_validar = tk.Button(self.janela_login, text="Acessar Painel", bg="#1a365d", fg="white", font=("Arial", 9, "bold"), width=15, command=self.validar_senha_diretoria)
-        btn_validar.pack(pady=5)
-        
-        btn_sair = tk.Button(self.janela_login, text="Cancelar", bg="#95a5a6", fg="white", font=("Arial", 9), width=15, command=self.janela_login.destroy)
-        btn_sair.pack(pady=5)
-
-    def validar_senha_diretoria(self):
-        if self.txt_senha.get() == "frotadir123":
-            self.janela_login.destroy()
-            self.inicializar_tela_fretamento()
-        else:
-            messagebox.showerror("Acesso Negado", "Senha de controle de fretamento incorreta!")
+        self.inicializar_tela_fretamento()
 
     def inicializar_tela_fretamento(self):
         self.window = tk.Toplevel(self.root)
@@ -45,8 +17,8 @@ class GerenciamentoFretamentoView:
         
         tk.Label(self.window, text="Logística de Ocupação Detalhada de Frota por Turno", font=("Arial", 14, "bold"), fg="#1a365d").pack(pady=15)
         
-        # 🎯 A TABELA DO FRETAMENTO DENTRO DA PARTE DA DIRETORIA
-        colunas_frota = ("Dia", "Ida Manhã", "Volta Manhã", "Ida Tarde", "Volta Tarde", "Ida Noite", "Volta Noite", "Frota Recomendada")
+        # TABELA DO FRETAMENTO DENTRO DA PARTE DA DIRETORIA
+        colunas_frota = ("Dia", "Ida Manhã", "Volta Manhã", "Ida Tarde", "Volta Tarde", "Ida Noite", "Volta Noite")
         self.tabela_frota = ttk.Treeview(self.window, columns=colunas_frota, show="headings", height=6)
         
         self.tabela_frota.heading("Dia", text="Dia Útil")
@@ -56,34 +28,106 @@ class GerenciamentoFretamentoView:
         self.tabela_frota.heading("Volta Tarde", text="Volta Tarde")
         self.tabela_frota.heading("Ida Noite", text="Ida Noite")
         self.tabela_frota.heading("Volta Noite", text="Volta Noite")
-        self.tabela_frota.heading("Frota Recomendada", text="Sugestão de Transporte Adequado")
+
+        self.tabela_frota.column("Dia", width=110, anchor="center")
         
-        for col in colunas_frota[:-1]:
+        for col in colunas_frota[1:]:
             self.tabela_frota.column(col, width=95, anchor="center")
-        self.tabela_frota.column("Frota Recomendada", width=245, anchor="w")
+       
         self.tabela_frota.pack(padx=20, pady=10, fill=tk.BOTH, expand=True)
-        
+
         self.atualizar_frota()
         
+        frame_botoes = tk.Frame(self.window)
+        frame_botoes.pack(pady=15)
+
+        tk.Button(frame_botoes, text="Analisar Transporte para o Dia", font=("Arial", 10, "bold"), bg="#2ecc71", fg="white", width=28, command=self.abrir_analise_veiculo).pack(side=tk.LEFT, padx=5)
         tk.Button(self.window, text="Fechar Painel de Logística", font=("Arial", 9), bg="#34495e", fg="white", width=25, command=self.window.destroy).pack(pady=15)
 
     def atualizar_frota(self):
         for row in self.tabela_frota.get_children(): 
             self.tabela_frota.delete(row)
-        lista = self.controller.buscar_todos()
+
+        try:
+            lista = self.controller.buscar_todos()
+        except Exception as e:
+            print(f"Erro ao buscar associados: {e}")
+            lista = []
+
+        dias_uteis = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"]
         
-        cronograma = {"Segunda": 0, "Terça": 0, "Quarta": 0, "Quinta": 0, "Sexta": 0}
+          #IM (Ida Manhã), VM (Volta Manhã), IT (Ida Tarde), VT (Volta Tarde), IN (Ida Noite), VN (Volta Noite)
+        self.contagem_global = {dia: {"IM": 0, "VM": 0, "IT": 0, "VT": 0, "IN": 0, "VN": 0} for dia in dias_uteis}
+        
         for u in lista:
-            if u.dias_semana:
-                for dia in str(u.dias_semana).split(","):
-                    if dia.strip() in cronograma:
-                        cronograma[dia.strip()] += 1
-                        
-        for dia, total_dia in cronograma.items():
-            if total_dia == 0: frota = "Nenhum Fretamento Ativo para o Dia"
-            elif total_dia <= 15: frota = "Alocar Van Executiva (Capacidade: 15)"
-            elif total_dia <= 28: frota = "Alocar Micro-ônibus (Capacidade: 28)"
-            else: frota = "Alocar Ônibus Fretado Convencional"
+            if not u.dias_semana:
+                continue
+                
+            dias_aluno = [d.strip() for d in str(u.dias_semana).split(",")]
             
-            # Preenche a listagem logística com base nos dados reais vindos do banco
-            self.tabela_frota.insert("", tk.END, values=(dia, 0, 0, 0, 0, total_dia, total_dia, frota))
+            # Obtém os turnos salvos no banco (usa "Noite" como padrão caso esteja nulo)
+            turno_ida = getattr(u, 'turno_ida', 'Noite') if getattr(u, 'turno_ida', 'Noite') else "Noite"
+            turno_volta = getattr(u, 'turno_volta', 'Noite') if getattr(u, 'turno_volta', 'Noite') else "Noite"
+            
+            for dia in dias_aluno:
+                if dia in self.contagem_global:
+                    # Incrementa a contagem exata da IDA baseada no turno do aluno
+                    if turno_ida == "Manhã": self.contagem_global[dia]["IM"] += 1
+                    elif turno_ida == "Tarde": self.contagem_global[dia]["IT"] += 1
+                    elif turno_ida == "Noite": self.contagem_global[dia]["IN"] += 1
+                    
+                    # Incrementa a contagem exata da VOLTA baseada no turno do aluno
+                    if turno_volta == "Manhã": self.contagem_global[dia]["VM"] += 1
+                    elif turno_volta == "Tarde": self.contagem_global[dia]["VT"] += 1
+                    elif turno_volta == "Noite": self.contagem_global[dia]["VN"] += 1
+                        
+        for dia in dias_uteis:
+            c = self.contagem_global[dia]
+            self.tabela_frota.insert("", tk.END, values=(dia, c["IM"], c["VM"], c["IT"], c["VT"], c["IN"], c["VN"]))
+
+    def abrir_analise_veiculo(self):
+        selecao = self.tabela_frota.selection()
+        if not selecao:
+            messagebox.showwarning("Aviso", "Por favor, selecione um dia da semana na tabela primeiro!")
+            return
+            
+        valores = self.tabela_frota.item(selecao, "values")
+        dia_selecionado = valores[0]
+        
+        c = self.contagem_global[dia_selecionado]
+        
+        def calcular_veiculo(qtd):
+            if qtd == 0: return "Nenhum transporte necessário"
+            elif qtd <= 15: return "Alocar Van Executiva (Capacidade: 15)"
+            elif qtd <= 28: return "Alocar Micro-ônibus (Capacidade: 28)"
+            else: return "Alocar Ônibus Fretado Convencional"
+            
+        janela_sugestao = tk.Toplevel(self.window)
+        janela_sugestao.title(f"Sugestão de Frota - {dia_selecionado}")
+        janela_sugestao.geometry("560x320")
+        janela_sugestao.resizable(False, False)
+        janela_sugestao.transient(self.window)
+        janela_sugestao.grab_set()
+        
+        tk.Label(janela_sugestao, text=f"Frota Recomendada para: {dia_selecionado}", font=("Arial", 12, "bold"), fg="#1a365d").pack(pady=15)
+        
+        colunas_sugestao = ("Turno", "Passageiros (Ida / Volta)", "Veículo Recomendado")
+        tabela_interna = ttk.Treeview(janela_sugestao, columns=colunas_sugestao, show="headings", height=3)
+        
+        tabela_interna.heading("Turno", text="Turno")
+        tabela_interna.heading("Passageiros (Ida / Volta)", text="Passageiros (Ida / Volta)")
+        tabela_interna.heading("Veículo Recomendado", text="Veículo Recomendado")
+        
+        tabela_interna.column("Turno", width=90, anchor="center")
+        tabela_interna.column("Passageiros (Ida / Volta)", width=150, anchor="center")
+        tabela_interna.column("Veículo Recomendado", width=280, anchor="w")
+        tabela_interna.pack(padx=15, pady=10, fill=tk.BOTH, expand=True)
+        
+        tabela_interna.insert("", tk.END, values=("Manhã", f"{c['IM']} ida / {c['VM']} volta", calcular_veiculo(max(c['IM'], c['VM']))))
+        tabela_interna.insert("", tk.END, values=("Tarde", f"{c['IT']} ida / {c['VT']} volta", calcular_veiculo(max(c['IT'], c['VT']))))
+        tabela_interna.insert("", tk.END, values=("Noite", f"{c['IN']} ida / {c['VN']} volta", calcular_veiculo(max(c['IN'], c['VN']))))
+        
+        tk.Button(janela_sugestao, text="Fechar Análise", font=("Arial", 9), width=15, command=janela_sugestao.destroy).pack(pady=15)
+     
+        
+       
