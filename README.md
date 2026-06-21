@@ -27,7 +27,7 @@ Antes de iniciar, certifique-se de ter o **PostgreSQL** instalado e crie um banc
 ```bash
 pip install psycopg2
 
-## Guia de Navegação pelas Abas
+### Guia de Navegação pelas Abas
 
 1. Menu Inscrição -> Realizar Nova Inscrição: Esta é a porta de entrada do estudante associado. Ao abrir o formulário, o aluno preenche seus dados (Nome, CPF, Telefone, Matrícula), escolhe a instituição de ensino, marca seus turnos de funcionamento e seleciona em quais dias úteis (de Segunda a Sexta) usará o transporte. Ao confirmar, o sistema gera na tela um Recibo de Inscrição detalhado com os valores calculados pelo padrão Strategy.
 
