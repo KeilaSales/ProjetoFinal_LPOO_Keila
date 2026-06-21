@@ -25,9 +25,9 @@ Este software unifica as duas pontas da associação:
 ### Pré-requisitos Técnicos
 Antes de iniciar, certifique-se de ter o **PostgreSQL** instalado e crie um banco de dados chamado `lpoo_projeto_keila`. Também é necessário instalar o driver de conexão do banco de dados no terminal do seu Python:
 ```bash
-pip install psycopg2
+pip install psycopg2```bash
 
-## Guia de Navegação pelas Abas
+### Guia de Navegação pelas Abas
 
 1. Menu Inscrição -> Realizar Nova Inscrição: Esta é a porta de entrada do estudante associado. Ao abrir o formulário, o aluno preenche seus dados (Nome, CPF, Telefone, Matrícula), escolhe a instituição de ensino, marca seus turnos de funcionamento e seleciona em quais dias úteis (de Segunda a Sexta) usará o transporte. Ao confirmar, o sistema gera na tela um Recibo de Inscrição detalhado com os valores calculados pelo padrão Strategy.
 
@@ -39,20 +39,20 @@ pip install psycopg2
 
 - Como funciona o botão Analisar: O administrador clica em cima de qualquer linha da semana (ex: Quinta-feira) e clica no botão Analisar Transporte para o Dia. O sistema abre um pop-up focado sugerindo o veículo ideal baseado na ocupação daquele turno específico (ex: indicando uma Van se houver até 15 alunos na manhã, Micro-ônibus se houver até 28 na tarde, ou Ônibus Convencional para a noite).
 
-## Modelagem Arquitetural
+### Modelagem Arquitetural
 
 O projeto foi estruturado utilizando a separação rigorosa de responsabilidades do padrão MVC (Model, View, Controller), dividida em módulos independentes (model/, dao/, controler/, view/).
 
 A documentação completa dos Casos de Uso, com os fluxos do sistema mapeados, está descrita no arquivo: Documentacao_projeto.md.
 
-## Padrões de Projeto Implementados
+### Padrões de Projeto Implementados
 
 1. Data Access Object (DAO): Centralização de todas as queries de persistência SQL (AssociadoDAO, RotaDAO, InscricaoDAO) herdando os métodos abstratos obrigatórios de GenericDAO.py.
 
 2. Strategy: Isolamento comportamental no módulo CalculoMensalidade.py para calcular de forma limpa o desconto progressivo baseado nos dias úteis da semana de cada aluno e injetar as taxas corretas de Matrícula (para alunos NOVOS) ou Rematrícula (para alunos ANTIGOS).
 
 
-## Declaração de Uso de Inteligência Artificial (IA)
+### Declaração de Uso de Inteligência Artificial (IA)
 
 Em conformidade com as regras pedagógicas do projeto, declara-se o uso assistido de ferramentas de IA generativa para fins de refatoração e suporte técnico:
 
