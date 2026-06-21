@@ -25,7 +25,8 @@ Este software unifica as duas pontas da associação:
 ### Pré-requisitos Técnicos
 Antes de iniciar, certifique-se de ter o **PostgreSQL** instalado e crie um banco de dados chamado `lpoo_projeto_keila`. Também é necessário instalar o driver de conexão do banco de dados no terminal do seu Python:
 ```bash
-pip install psycopg2```bash
+pip install psycopg2
+```
 
 ### Guia de Navegação pelas Abas
 
