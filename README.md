@@ -27,8 +27,13 @@ Antes de iniciar, certifique-se de ter o **PostgreSQL** instalado e crie um banc
 ```bash
 pip install psycopg2
 ```
+<<<<<<< HEAD
 
 ### Guia de Navegação pelas Abas
+=======
+---
+## Guia de Navegação pelas Abas
+>>>>>>> 4385ec58efdaace0d65134707fdffbf3bfaf3783
 
 1. Menu Inscrição -> Realizar Nova Inscrição: Esta é a porta de entrada do estudante associado. Ao abrir o formulário, o aluno preenche seus dados (Nome, CPF, Telefone, Matrícula), escolhe a instituição de ensino, marca seus turnos de funcionamento e seleciona em quais dias úteis (de Segunda a Sexta) usará o transporte. Ao confirmar, o sistema gera na tela um Recibo de Inscrição detalhado com os valores calculados pelo padrão Strategy.
 
@@ -60,3 +65,6 @@ Em conformidade com as regras pedagógicas do projeto, declara-se o uso assistid
 1. Google Gemini (Modelo Gemini 1.5 Pro): Atuou como assistente na camada de interface gráfica (view/), auxiliando na estruturação de componentes de layout do Tkinter, na configuração de eventos dinâmicos por digitação (<KeyRelease>) para a barra de pesquisa por nome e no ajuste de foco e posicionamento de janelas filhas e pop-ups (Toplevel).
 
 2. OpenAI ChatGPT: Atuou como suporte de engenharia de dados na camada de persistência (dao/), auxiliando na revisão de estruturas de conexão Estática com a classe DatabaseConfig, tratamento normativo de transações e controle de segurança de rollback em falhas com a biblioteca psycopg2.
+
+
+
