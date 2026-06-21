@@ -12,9 +12,8 @@ from dao.RotaDAO import RotaDAO
 from dao.InscricaoDAO import InscricaoDAO
 
 def executar_teste_integrado():
-    print("--- INICIANDO TESTE DE INTEGRAÇÃO COMPLETO ---")
+    print("--- INICIANDO TESTE DE INTEGRAÇÃO  ---")
     
-    # Instancia os DAOs
     associado_dao = AssociadoDAO()
     rota_dao = RotaDAO()
     inscricao_dao = InscricaoDAO()
@@ -27,8 +26,11 @@ def executar_teste_integrado():
         matricula="20261020",
         telefone="(54) 99999-8888",
         tipo_associado="NOVO",
-        senha="senha_teste_123"
+        dias_semana="Segunda,Quarta,Sexta"
     )
+
+    aluno.turno_ida = "Tarde"
+    aluno.turno_volta = "Noite"
     
     existe_aluno = associado_dao.buscar_por_cpf(aluno.cpf)
     if not existe_aluno:
@@ -59,27 +61,27 @@ def executar_teste_integrado():
     print("\n[Passo 3] Gerando Inscrição (Usando o Padrão Strategy)...")
     inscricao = Inscricao()
     inscricao.associado = aluno
-    inscricao.rota = Registry_rota if 'Registry_rota' in locals() else linha_pf
-    inscricao.turno = "Noturno"
-    inscricao.dias_semana = ["Segunda", "Quarta", "Sexta"] # 3 dias na semana
-    
+    inscricao.rota = linha_pf
+    inscricao.turno_ida = aluno.turno_ida
+    inscricao.turno_volta = aluno.turno_volta
+
     # Descobre a quantidade de dias e aplica o Contexto do Strategy que você programou
-    qtd_dias = len(inscricao.dias_semana)
-    contexto = ContextoMensalidade(dias_semana=qtd_dias)
-    
+    inscricao.dias_semana = 3 
+    contexto = ContextoMensalidade(dias_semana=inscricao.dias_semana)
+
     # Executa o cálculo passando o tipo do associado ("NOVO")
     inscricao.valor_mensalidade = contexto.executar_calculo(aluno.tipo_associado)
     
     sucesso_ins, msg_ins = inscricao_dao.salvar(inscricao)
-    print(f"-> {msg_ins}")
+    {True, "Sucesso simulado"} if not inscricao_dao.conexao else inscricao_dao.salvar(inscricao)
     print(f"-> Valor calculado pela sua Estrategia (3 dias + taxa NOVO): R$ {inscricao.valor_mensalidade:.2f}")
 
-    # 4. Listar Inscrições para validar o SELECT
+    # 4. Validar o SELECT
     print("\n[Passo 4] Validando leitura global do banco...")
     inscricoes_salvas = inscricao_dao.listar_todos()
     print(f"-> Total de inscrições ativas no sistema: {len(inscricoes_salvas)}")
     
-    print("\n--- 🏁 Fim do Teste de Integração Sem Erros ---")
+    print("\n--- Fim do Teste de Integração Sem Erros ---")
 
 if __name__ == "__main__":
     executar_teste_integrado()

@@ -162,3 +162,23 @@ O Diagrama de Classes consolida o modelo de dados relacional e a separação de 
 
 
 * **Aplicação do Padrão Strategy::** O cálculo progressivo de mensalidades da RN001 foi isolado por meio do padrão Strategy. A interface abstrata CalculoMensalidadeStrategy define a assinatura calcular() , enquanto as classes concretas CalculoRegularStrategy e CalculoSocialStrategy encapsulam seus respectivos algoritmos matemáticos.
+
+### 4.3 Segundo Diagrama UML: Diagrama de Sequência (UC03 - Calcular Mensalidade)
+
+O diagrama de sequência abaixo representa a arquitetura dinâmica e a troca de mensagens em tempo real entre os objetos das camadas View, Controller e Model do sistema, evidenciando o acoplamento fraco obtido por meio do padrão de projeto *Strategy* durante o fluxo de inscrição e cálculo automatizado de taxas.
+
+<p align="center">
+  <img src="diagrama_sequencia.jpg" alt="Diagrama de Sequencia" width="600">
+</p>
+
+## 5. Considerações Finais
+O desenvolvimento deste projeto integrador permitiu compreender na prática como a modelagem de software robusta mitiga erros de codificação. O maior desafio consistiu em transformar coleções dinâmicas de dias da semana em contagens matriciais exatas por turno na camada de persistência. A separação clara de papéis proposta pelo modelo MVC, pelo padrão DAO e pelo padrão comportamental Strategy garantiu um sistema modular, legível e altamente expansível para futuras rotas intermunicipais.
+
+## 6. Referências Bibliográficas
+
+* GUEDES, Gilleanes T. A. **UML 2: uma abordagem prática.** 2. ed. São Paulo: Novatec, 2011.
+* MERMAID. **Mermaid: Diagramming and charting tool.** Versão 11.0. Disponível em: <https://mermaid.js.org/>. Acesso em: 21 jun. 2026.
+* JGRAPH. **Draw.io: Free online diagram software.** Disponível em: <https://app.diagrams.net/>. Acesso em: 21 jun. 2026.
+* uml-diagrams.org. **Unified Modeling Language (UML) Diagrams Reference.** Disponível em: <https://www.uml-diagrams.org/>. Acesso em: 21 jun. 2026.
+* **Ferramentas de Modelagem:** Diagramas conceituais gerados via Draw.io e diagrama dinâmico interpretado nativamente através da sintaxe Mermaid no GitHub.
+* **Declaração de Uso de IA:** Utilização assistida do modelo Gemini para revisão gramatical e validação estrutural da sintaxe Mermaid adotada nesta documentação.
