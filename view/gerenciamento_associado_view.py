@@ -1,3 +1,5 @@
+
+# CAMADA VIEW: Painel Completo de Controle e Edição da Diretoria (Tkinter)
 import tkinter as tk
 from tkinter import messagebox, ttk
 from model.Associado import Associado  
@@ -7,9 +9,11 @@ class GerenciamentoAssociadoView:
     def __init__(self, root, controller):
         self.root = root
         self.controller = controller
+        #Exige autenticação antes de renderizar qualquer dado
         self.solicitar_acesso_admin()
 
     def solicitar_acesso_admin(self):
+        #Cria uma janela flutuante independente sobre a tela principal
         self.janela_login = tk.Toplevel(self.root)
         self.janela_login.title("Autenticação - Portaria")
         self.janela_login.geometry("360x240")
@@ -20,6 +24,7 @@ class GerenciamentoAssociadoView:
         tk.Label(self.janela_login, text="Gerenciamento de Universitários", font=("Arial", 11, "bold"), fg="#1a365d").pack(pady=15)
         tk.Label(self.janela_login, text="Digite a Senha de Acesso:", font=("Arial", 10)).pack(pady=2)
         
+        #O atributo show="*" esconde os caracteres digitados no campo
         self.txt_senha = tk.Entry(self.janela_login, show="*", width=22, font=("Arial", 10))
         self.txt_senha.pack(pady=10)
         
@@ -31,10 +36,10 @@ class GerenciamentoAssociadoView:
 
     def validar_senha_admin(self):
         if self.txt_senha.get() == "diretoria123":
-            self.janela_login.destroy()
-            self.inicializar_tela_associados()
+            self.janela_login.destroy() #Fecha a caixinha de login
+            self.inicializar_tela_associados() #Abre a tela de gerenciamento de associados
         else:
-            messagebox.showerror("Acesso Denegado", "Senha administrativa incorreta!")
+            messagebox.showerror("Acesso Negado", "Senha administrativa incorreta!")
 
     def inicializar_tela_associados(self):
         self.window = tk.Toplevel(self.root)
@@ -53,13 +58,16 @@ class GerenciamentoAssociadoView:
         self.txt_busca = tk.Entry(frame_busca, font=("Arial", 10), width=35)
         self.txt_busca.pack(side=tk.LEFT, padx=5)
         
+        #Busca em cada caracter digitado
         def filtrar_por_nome(event):
-            termo = self.txt_busca.get().lower().strip()
+            termo = self.txt_busca.get().lower().strip() 
+            # Limpa as linhas da tabela antes de listar o resultado filtrado
             for row in self.tabela.get_children():
                 self.tabela.delete(row)
             try:
                 lista = self.controller.buscar_todos()
                 for u in lista:
+                # Compara o termo digitado com o nome do objeto da Model
                     if termo in u.nome.lower():
                         qtd_dias = len(str(u.dias_semana).split(",")) if u.dias_semana else 1
                         valor_base = 120.00 if str(u.tipo_associado).upper() == "ANTIGO" else 150.00
@@ -68,8 +76,10 @@ class GerenciamentoAssociadoView:
             except Exception as e:
                 print(f"Erro ao filtrar: {e}")
 
+        #Vincula o evento de soltar uma tecla (<KeyRelease>) à função de filtragem
         self.txt_busca.bind("<KeyRelease>", filtrar_por_nome)
 
+        #Montagem da estrutura de colunas e cabeçalhos da tabela principal
         colunas = ("Nome", "CPF", "Acadêmico", "Telefone", "Vínculo", "Dias", "Mensalidade")
         self.tabela = ttk.Treeview(self.window, columns=colunas, show="headings", height=12)
         
@@ -93,21 +103,25 @@ class GerenciamentoAssociadoView:
         frame_botoes = tk.Frame(self.window)
         frame_botoes.pack(pady=15)
         
+        #Botões de baixo 
         tk.Button(frame_botoes, text="Ver Frota (Logística por Turno)", font=("Arial", 9, "bold"), bg="#34495e", fg="white", width=26, command=self.abrir_fretamento_direto).pack(side=tk.LEFT, padx=5)
         tk.Button(frame_botoes, text="Editar Cadastro", font=("Arial", 9, "bold"), bg="#f39c12", fg="white", width=16, command=self.editar_cadastro).pack(side=tk.LEFT, padx=5)
         tk.Button(frame_botoes, text="Cancelar Matrícula", font=("Arial", 9, "bold"), bg="#e74c3c", fg="white", width=16, command=self.remover).pack(side=tk.LEFT, padx=5)
         tk.Button(frame_botoes, text="Fechar", font=("Arial", 9), width=12, command=self.window.destroy).pack(side=tk.LEFT, padx=5)
         
+        # Puxa os dados iniciais do banco
         self.atualizar_dados()
 
     def atualizar_dados(self):
+        #Popula a tabela com os registros ativos 
         for row in self.tabela.get_children(): 
             self.tabela.delete(row)
         
         try:
             lista = self.controller.buscar_todos()
             if lista:
-                for u in lista:
+                for u in lista: 
+                    # Calcula o valor estimado para exibição administrativa baseado na quantia de dias
                     qtd_dias = len(str(u.dias_semana).split(",")) if u.dias_semana else 1
                     valor_base = 120.00 if str(u.tipo_associado).upper() == "ANTIGO" else 150.00
                     mensalidade_final = valor_base * qtd_dias
@@ -119,17 +133,20 @@ class GerenciamentoAssociadoView:
         GerenciamentoFretamentoView(self.window, self.controller)
 
     def editar_cadastro(self):
+        #Abre o formulário flutuante interno para alteração cadastral
         selecao = self.tabela.selection()
         if not selecao:
             messagebox.showwarning("Aviso", "Selecione um universitário para editar.")
             return
         valores = self.tabela.item(selecao, "values")
-        
+
+        # Captura os dados da linha clicada para preencher os campos originais na tela de edição
         nome_atual = valores[0]
         cpf_selecionado = valores[1]
         tel_atual = valores[3]
         dias_salvos = valores[5]
         
+        # Varre a lista de objetos para extrair os turnos salvos daquele CPF específico
         lista_completa = self.controller.buscar_todos()
         turno_ida_atual = "Noite"
         turno_volta_atual = "Noite"
@@ -139,12 +156,14 @@ class GerenciamentoAssociadoView:
                 turno_volta_atual = obj.turno_volta
                 break
         
+        # Cria a janela de alteração de dados
         janela_edit = tk.Toplevel(self.window)
         janela_edit.title("Editar Passageiro")
         janela_edit.geometry("520x560")
         janela_edit.transient(self.window)
         janela_edit.grab_set()
         
+        #Cria um painel com barra de rolagem vertical dinâmica
         canvas = tk.Canvas(janela_edit, highlightthickness=0)
         scrollbar = ttk.Scrollbar(janela_edit, orient="vertical", command=canvas.yview)
         scrollable_frame = tk.Frame(canvas)
@@ -162,7 +181,7 @@ class GerenciamentoAssociadoView:
         
         tk.Label(scrollable_frame, text="Nome Completo:", font=("Arial", 9, "bold")).pack(anchor="w", padx=50)
         txt_novo_nome = tk.Entry(scrollable_frame, width=40, font=("Arial", 10))
-        txt_novo_nome.insert(0, nome_atual)
+        txt_novo_nome.insert(0, nome_atual) # Preenche o campo com o valor existente
         txt_novo_nome.pack(pady=4)
         
         tk.Label(scrollable_frame, text="Telefone de Contato:", font=("Arial", 9, "bold")).pack(anchor="w", padx=50)
@@ -182,6 +201,7 @@ class GerenciamentoAssociadoView:
         
         tk.Label(scrollable_frame, text="Editar dias semanais:", font=("Arial", 9, "bold"), fg="#1a365d").pack(pady=10)
         
+        #Inicializam marcadas (True) se o dia já estava no texto recuperado do banco
         dias_vars_edit = {
             "Segunda": tk.BooleanVar(value="Segunda" in dias_salvos),
             "Terça": tk.BooleanVar(value="Terça" in dias_salvos),
@@ -196,8 +216,18 @@ class GerenciamentoAssociadoView:
             tk.Checkbutton(frame_dias_edit, text=dia[:3], variable=var, font=("Arial", 10)).pack(side=tk.LEFT, padx=6)
             
         def salvar_edicao():
+            #Coleta as informações e acina a camanda controladora 
             nome_fined = txt_novo_nome.get().strip()
-            tel_fined = txt_novo_tel.get().strip()
+            telefone_bruto = txt_novo_tel.get().strip()
+             
+            # Higieniza o telefone tirando parênteses, hifens e espaços antes de validar
+            tel_fined = telefone_bruto.replace("(", "").replace(")", "").replace("-", "").replace(" ", "")
+            
+            # Agora a validação funciona perfeitamente com os números limpos!
+            if not tel_fined.isdigit() or len(tel_fined) < 9:
+                messagebox.showwarning("Erro", "Insira um telefone válido com apenas números!")
+                return
+
             if any(char.isdigit() for char in nome_fined):
                 messagebox.showwarning("Erro", "Nome não pode conter números!")
                 return
@@ -211,6 +241,7 @@ class GerenciamentoAssociadoView:
                 return
             string_dias = ",".join(dias_atualizados)
             
+            # Instancia o objeto com os dados modificados
             associado_modificado = Associado(
                 nome=nome_fined,
                 cpf=cpf_selecionado,
@@ -222,12 +253,13 @@ class GerenciamentoAssociadoView:
             associado_modificado.turno_ida = cb_novo_ida.get()
             associado_modificado.turno_volta = cb_novo_volta.get()
             
+            #Invoca diretamente a operação de atualização do DAO
             sucesso, msg = self.controller.associado_dao.atualizar(associado_modificado)
             
             if sucesso:
                 messagebox.showinfo("Sucesso", "Cadastro e logística atualizados com sucesso!")
                 janela_edit.destroy()
-                self.atualizar_dados()
+                self.atualizar_dados() # Recarrega a tabela principal em tempo real
             else:
                 messagebox.showerror("Erro ao Salvar", f"Falha no banco de dados: {msg}")
 
@@ -241,6 +273,7 @@ class GerenciamentoAssociadoView:
         canvas.configure(scrollregion=canvas.bbox("all"))
 
     def remover(self):
+        #Cancela o refistro no banco de dados atraves do CPF
         selecao = self.tabela.selection()
         if not selecao:
             messagebox.showwarning("Aviso", "Selecione um registro.")
@@ -250,6 +283,6 @@ class GerenciamentoAssociadoView:
             sucesso, msg = self.controller.remover_universitario(valores[1])
             if sucesso:
                 messagebox.showinfo("Sucesso", "Excluído!")
-                self.atualizar_dados()
+                self.atualizar_dados() #Atualiza dados na tela 
             else:
                 messagebox.showerror("Erro", msg)

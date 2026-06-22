@@ -1,18 +1,19 @@
+#CAMADA DAO: Responsável por fazer o CRUD direto no banco
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from model.Associado import Associado
 from dao.db_config import DatabaseConfig
 from dao.Generic_dao import GenericDAO
 
+# POLIMORFISMO E HERANÇA: Herda de GenericDAO e implementa seus métodos obrigatórios
 class AssociadoDAO(GenericDAO):
     def __init__(self):
-        # Retém a conexão no construtor da classe igual ao VeiculoDAO dela
+       # Puxa a conexão ativa com o banco configurada no db_config
         self.conexao = DatabaseConfig.get_connection()
         
     def salvar(self, associado: Associado):
-        """ Insere um novo associado no banco de dados (CREATE) """
+        # Insere um novo associado no banco de dados (CREATE)
         if not self.conexao:
             return False, "Sem conexão com o banco de dados"
             
@@ -23,6 +24,7 @@ class AssociadoDAO(GenericDAO):
         """
         try:
             cursor = self.conexao.cursor()
+            # Substitui os %s pelos dados reais contidos no objeto da Model
             cursor.execute(sql, (
                 associado.nome, 
                 associado.cpf, 
@@ -33,32 +35,34 @@ class AssociadoDAO(GenericDAO):
                 associado.turno_ida,  
                 associado.turno_volta
             ))
-            self.conexao.commit()
+            self.conexao.commit() # Grava as alterações no banco
             print("Associado salvo com sucesso no banco!")
             return True, "Associado cadastrado com sucesso"
         except Exception as e:
-            self.conexao.rollback() # Regra estrita dela: desfaz em caso de erro
+            self.conexao.rollback() # Segurança: cancela a operação caso dê algum erro
             print(f"Erro ao inserir associado: {e}")
             return False, f"Erro ao inserir associado: {e}"
         finally:
             if cursor: 
-                cursor.close()
+                cursor.close() #Fecha o cursor para liberar memória
 
     def listar_todos(self):
-        """ Retorna todos os associados cadastrados (READ ALL) """
+        # Retorna todos os associados cadastrados (R do CRUD) """
         if not self.conexao:
-            return []
+            return [] 
             
         cursor = None
         sql = "SELECT nome, cpf, matricula, telefone, tipo_associado, dias_semana, turno_ida, turno_volta FROM associado ORDER BY nome;"
         try:
             cursor = self.conexao.cursor()
             cursor.execute(sql)
-            linhas = cursor.fetchall()
+            linhas = cursor.fetchall() # Captura todos os registros retornados do banco
             
             # Converte a lista de tuplas do Postgres em uma lista de objetos Associado
             associados = []
+
             for linha in linhas:
+                
                 obj = Associado(
                     nome=linha[0],
                     cpf=linha[1],
@@ -79,7 +83,7 @@ class AssociadoDAO(GenericDAO):
                 cursor.close()
 
     def buscar_por_cpf(self, cpf: str):
-        """ Busca um associado específico pelo CPF """
+        # Busca um associado específico pelo CPF 
         if not self.conexao:
             return None
             
@@ -88,8 +92,9 @@ class AssociadoDAO(GenericDAO):
         try:
             cursor = self.conexao.cursor()
             cursor.execute(sql, (cpf,))
-            linha = cursor.fetchone()
+            linha = cursor.fetchone() # Puxa apenas a primeira linha encontrada
             
+            # Transforma a linha do banco em um objeto da Model
             if linha:
                 novo_associado = Associado(
                     nome=linha[0],
@@ -111,7 +116,7 @@ class AssociadoDAO(GenericDAO):
                 cursor.close()
 
     def atualizar(self, associado: Associado):
-        """ Atualiza os dados de um associado pela chave do CPF (UPDATE) """
+        # Atualiza os dados de um associado pela chave do CPF (UPDATE)
         if not self.conexao:
             return False, "Sem conexão com o banco de dados"
             
@@ -136,7 +141,7 @@ class AssociadoDAO(GenericDAO):
             self.conexao.commit()
             return True, "Dados do associado atualizados com sucesso"
         except Exception as e:
-            self.conexao.rollback()
+            self.conexao.rollback() # Desfaz em caso de falha no meio do processo
             print(f"Erro ao atualizar associado: {e}")
             return False, f"Erro ao atualizar associado: {e}"
         finally:
@@ -144,7 +149,7 @@ class AssociadoDAO(GenericDAO):
                 cursor.close()
 
     def remover(self, cpf: str):
-        """ Remove um associado do banco pelo CPF (DELETE) """
+        # Remove um associado do banco pelo CPF (DELETE) 
         if not self.conexao:
             return False, "Sem conexão com o banco de dados"
             
@@ -153,7 +158,7 @@ class AssociadoDAO(GenericDAO):
         try:
             cursor = self.conexao.cursor()
             cursor.execute(sql, (cpf,))
-            self.conexao.commit()
+            self.conexao.commit() # Confirma a exclusão física do registro
             return True, "Associado removido com sucesso"
         except Exception as e:
             self.conexao.rollback()

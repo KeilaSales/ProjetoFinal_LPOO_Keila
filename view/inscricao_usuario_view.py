@@ -1,8 +1,10 @@
+# CAMADA VIEW: Formulário Público de Inscrição com Validações Estritas
 import tkinter as tk
 from tkinter import messagebox, ttk
 
 class InscricaoUsuarioView:
     def __init__(self, root, controller):
+        # Janela secundária Toplevel que bloqueia a janela principal de trás (grab_set)
         self.window = tk.Toplevel(root)
         self.window.title("Inscrição — Sistema de Transporte Universitário")
         self.window.geometry("680x520")
@@ -12,10 +14,12 @@ class InscricaoUsuarioView:
         
         tk.Label(self.window, text="Formulário de Inscrição de Passageiro", font=("Arial", 14, "bold"), fg="#1a365d").pack(pady=15)
         
+        # Container organizacional interno usando o gerenciador de layout Grid
         frame_form = tk.Frame(self.window)
         frame_form.pack(padx=20, pady=5, fill=tk.BOTH, expand=True)
         
         # --- CAMPOS DO FORMULÁRIO ---
+        # --- (Labels, Entries e Comboboxes) ---
         tk.Label(frame_form, text="Nome Completo:").grid(row=0, column=0, sticky="w", pady=5)
         self.txt_nome = tk.Entry(frame_form, width=28, font=("Arial", 10))
         self.txt_nome.grid(row=0, column=1, pady=5, padx=5, sticky="w")
@@ -27,7 +31,8 @@ class InscricaoUsuarioView:
         tk.Label(frame_form, text="Universidade / Faculdade:").grid(row=1, column=0, sticky="w", pady=5)
         self.cb_faculdade = ttk.Combobox(frame_form, values=[
             "Universidade de Passo Fundo (UPF)", "Instituto Federal Sul-rio-grandense (IFSul)", 
-            "Universidade Federal da Fronteira Sul (UFFS)", "Atitus Educação", "Anhanguera", "IDEAU", "Outros"
+            "Universidade Federal da Fronteira Sul (UFFS)", "Atitus Educação (Atitus)", "Atitus Educação Câmpus Agro (Atitus-Agro)", 
+            "Anhanguera", "IDEAU", "Outros"
         ], width=25, state="readonly", font=("Arial", 10))
         self.cb_faculdade.grid(row=1, column=1, pady=5, padx=5, sticky="w")
         self.cb_faculdade.set("Universidade de Passo Fundo (UPF)")
@@ -57,6 +62,7 @@ class InscricaoUsuarioView:
 
         tk.Label(frame_form, text="Selecione os dias de uso na semana:", font=("Arial", 10, "bold"), fg="#2c3e50").grid(row=4, column=0, columnspan=4, pady=15, sticky="w")
         
+        # MAPA DE BOOLEANOS: Captura o estado True/False de cada dia útil marcado
         self.dias_vars = {
             "Segunda": tk.BooleanVar(), "Terça": tk.BooleanVar(),
             "Quarta": tk.BooleanVar(), "Quinta": tk.BooleanVar(), "Sexta": tk.BooleanVar()
@@ -69,6 +75,7 @@ class InscricaoUsuarioView:
         frame_botoes = tk.Frame(self.window)
         frame_botoes.pack(pady=25)
         
+        # BOTÕES DISPARADORES DOS EVENTOS
         btn_salvar = tk.Button(frame_botoes, text="Confirmar Inscrição", font=("Arial", 10, "bold"), bg="#2ecc71", fg="white", width=18, command=self.salvar)
         btn_salvar.pack(side=tk.LEFT, padx=10)
         
@@ -76,54 +83,79 @@ class InscricaoUsuarioView:
         btn_cancelar.pack(side=tk.LEFT, padx=10)
 
     def salvar(self):
+        # Executa as validações sanitárias de UI e despacha para o Controller 
         nome = self.txt_nome.get().strip()
         cpf = self.txt_cpf.get().strip()
         matricula = self.txt_matricula.get().strip()
         telefone = self.txt_telefone.get().strip()
         vinculo = self.cb_tipo.get()
+        # Compreensão de lista: extrai apenas os nomes dos dias marcados (True)
         dias = [dia for dia, var in self.dias_vars.items() if var.get()]
         
-        # Validações estritas de segurança na interface
+        # --- CAMADA DE VALIDAÇÃO GRÁFICA (SEGURANÇA DA INTERFACE) ---
         if not nome or not cpf or not matricula:
             messagebox.showwarning("Validação", "Os campos Nome, CPF e Matrícula são obrigatórios!")
             return
+        
+        # Validação de Tipo: Garante que o nome não possua números infiltrados
         if any(char.isdigit() for char in nome):
             messagebox.showwarning("Erro", "O campo Nome Completo não deve conter números!")
             return
-        if not cpf.isdigit() or len(cpf) != 11:
+
+        # Higienização de String: Remove pontos, traços e espaços do CPF
+        cpf_limpo = cpf.replace(".", "").replace("-", "").replace(" ", "")
+        if not cpf_limpo.isdigit() or len(cpf_limpo) != 11:
             messagebox.showwarning("Erro de CPF", "O campo CPF deve conter exatamente 11 dígitos numéricos!")
             return
-        if not matricula.replace(".", "").replace("-", "").replace(" ", "").isalnum():
-            messagebox.showwarning("Erro", "O campo Nº Matrícula deve conter apenas caracteres válidos!")
+        
+        # Validação de Tamanho do Banco de Dados: Evita estouro de campo varchar(20) no Postgres
+        matricula_limpa = matricula.replace(".", "").replace("-", "").replace(" ", "")
+        if len(matricula_limpa) > 20:
+            messagebox.showwarning("Erro", "O campo Nº Matrícula deve conter até 20 dígitos numéricos!")
             return
-        if not telefone.isdigit() or len(telefone) < 9:
-            messagebox.showwarning("Erro de Telefone", "O campo Telefone deve conter no mínimo 9 dígitos numéricos!")
+ 
+        telefone_limpo = telefone.replace("(", "").replace(")", "").replace("-", "").replace(" ", "")
+        if not telefone_limpo.isdigit() or len(telefone_limpo) != 11:
+            messagebox.showwarning("Erro de Telefone", "O campo Telefone deve conter exatamente 11 dígitos com o DDD!!")
             return
+        
+        # Validação de Negócio: Impede que o estudante se inscreva sem marcar nenhum dia  
         if len(dias) == 0:
             messagebox.showwarning("Validação", "Selecione ao menos 1 dia da semana para o transporte!")
             return
 
         info_turnos = f"Ida: {self.cb_ida.get()} | Volta: {self.cb_volta.get()}"
         
+        # COMUNICAÇÃO MVC: Envia os dados higienizados ao controlador e aguarda o processamento
         sucesso, resultado = self.controller.cadastrar_universitario(
             nome, cpf, self.cb_faculdade.get(), matricula, telefone, vinculo, dias,
             turno_ida=self.cb_ida.get(), turno_volta=self.cb_volta.get()
             )
         
         if sucesso:
-            termo_tax = "Taxa de Rematrícula" if vinculo == "ANTIGO" else "Taxa de Inscrição/Matrícula"
+        #  Regra Gramatical de Interface: Adapta dinamicamente os textos do recibo visual
+        
+            termo_tax = "Matrícula" if vinculo == "ANTIGO" else "Matrícula"
+            nome_taxa_total = "Matrícula" if vinculo == "ANTIGO" else "Matrícula"
+            if vinculo == "ANTIGO":
+                termo_tax = "Rematrícula"
+                nome_taxa_total = "Rematrícula"
+            else:
+                termo_tax = "Inscrição/Matrícula"
+                nome_taxa_total = "Matrícula"
 
             # Renderiza o recibo completo utilizando as saídas do seu Strategy
             messagebox.showinfo("Recibo de Inscrição Universitária", 
                                 f"Inscrição cadastrada com sucesso!\n\n"
                                 f"Passageiro: {resultado['nome']}\n"
-                                f"Logística: {info_turnos}\n"
+                                f"Logística: \n"
+                                f"• Ida: {self.cb_ida.get()} | Volta: {self.cb_volta.get()}\n\n"
                                 f"Frequência Semanal: {resultado['dias']} ({resultado['qtd']} dias)\n\n"
-                                f"--- Demonstrativo Financeiro (Calculado via Strategy) ---\n"
-                                f"• Custo Mensal Rateado: R$ {resultado['mensalidade_pura']:.2f}\n"
-                                f"• {termo_tax}: R$ {resultado['taxa']:.2f}\n"
-                                f" TOTAL DO PRIMEIRO MÊS (Com Taxas): R$ {resultado['total_primeiro_mes']:.2f}\n"
+                                f"--- Demonstrativo Financeiro ---\n"
+                                f"• Custo Mensal: R$ {resultado['mensalidade_pura']:.2f}\n"
+                                f"• Taxa de {termo_tax}: R$ {resultado['taxa']:.2f}\n"
+                                f" TOTAL DO PRIMEIRO MÊS (Com {nome_taxa_total}): R$ {resultado['total_primeiro_mes']:.2f}\n"
                                 f" MENSALIDADES SEGUINTES (Líquidas): R$ {resultado['mensalidade_pura']:.2f}")
-            self.window.destroy()
+            self.window.destroy() # Encerra o formulário após a consolidação com sucesso
         else:
             messagebox.showerror("Erro de Inscrição", resultado)

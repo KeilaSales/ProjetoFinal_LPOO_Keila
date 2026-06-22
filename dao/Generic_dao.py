@@ -1,5 +1,7 @@
+# CLASSE ABSTRATA / INTERFACE: Define o contrato de banco de dados
 from abc import ABC, abstractmethod
 
+# Serve apenas como molde e não pode ser instanciada diretamente
 class GenericDAO(ABC):
     @abstractmethod 
     def salvar(self, objeto):

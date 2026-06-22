@@ -1,14 +1,13 @@
+# PADRÃO DE PROJETO STRATEGY: Isola as regras de cálculo financeiro
 from abc import ABC, abstractmethod
 
 class StrategyMensalidade(ABC):
-    """
-    Interface (Classe Abstrata) para o padrão de projeto Strategy.
-    """
+    # CLASSE ABSTRATA: Define a interface comum para todas as estratégias de cálculo
     @abstractmethod
     def calcular(self, tipo_associado: str) -> float:
         pass
 
-
+# ESTRATÉGIAS CONCRETAS: Cada classe abaixo implementa de forma isolada a matemática de uma quantidade de dias
 class EstrategiaUmDia(StrategyMensalidade):
     def calcular(self, tipo_associado: str) -> float:
         taxa_base = 1 * 280.0 
@@ -48,6 +47,7 @@ class EstrategiaCincoDias(StrategyMensalidade):
 class ContextoMensalidade:
 
     def __init__(self, dias_semana: int):
+        # POLIMORFISMO: Instancia a estratégia correta com base no número de dias passados
         if dias_semana == 1:
             self._estrategia = EstrategiaUmDia()
         elif dias_semana == 2:
