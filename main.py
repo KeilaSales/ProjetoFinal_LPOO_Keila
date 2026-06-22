@@ -27,7 +27,7 @@ class AplicacaoPrincipal:
         #Administração
         menu_admin = tk.Menu(barra_menu, tearoff=0)
         barra_menu.add_cascade(label="Administrador", menu=menu_admin)
-        menu_admin.add_command(label="👥 Gerenciar Universitários (Editar/Remover)", command=self.abrir_painel_associados)
+        menu_admin.add_command(label="Gerenciar Universitários (Editar/Remover)", command=self.abrir_painel_associados)
         # Texto de Boas-Vindas da Janela Inicial
         tk.Label(self.root, text="Bem-vindo ao Sistema de Transporte!", font=("Arial", 16, "bold"), fg="#1a365d").pack(pady=40)
         tk.Label(self.root, text="Use a barra de menus acima para navegar:", font=("Arial", 12)).pack(pady=10)

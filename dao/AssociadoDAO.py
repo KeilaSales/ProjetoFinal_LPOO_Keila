@@ -134,9 +134,7 @@ class AssociadoDAO(GenericDAO):
                 associado.telefone,
                 associado.turno_ida,  
                 associado.turno_volta,
-                associado.cpf
-
-                
+                associado.cpf       
             ))
             self.conexao.commit()
             return True, "Dados do associado atualizados com sucesso"
