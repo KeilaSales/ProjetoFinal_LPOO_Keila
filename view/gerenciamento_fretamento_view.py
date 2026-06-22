@@ -1,11 +1,13 @@
 # CAMADA VIEW: Painel Avançado de Logística e Ocupação por Turnos (Tkinter)
 import tkinter as tk
 from tkinter import messagebox, ttk
+from controler.fretamento_controller import FretamentoController
+
 
 class GerenciamentoFretamentoView:
     def __init__(self, root, controller):
         self.root = root
-        self.controller = controller
+        self.fretamento_controller = FretamentoController(controller)
         self.inicializar_tela_fretamento()
 
     def inicializar_tela_fretamento(self):
@@ -51,53 +53,20 @@ class GerenciamentoFretamentoView:
         tk.Button(self.window, text="Fechar Painel de Logística", font=("Arial", 9), bg="#34495e", fg="white", width=25, command=self.window.destroy).pack(pady=15)
 
     def atualizar_frota(self):
-        # Varre os dados do banco e faz a contagem estatística em matriz cruzada 
-        # Limpa as linhas anteriores da tabela
+        # View delegando a contagem de dados para a camada Controller
         for row in self.tabela_frota.get_children(): 
             self.tabela_frota.delete(row)
 
-        try:
-            lista = self.controller.buscar_todos()
-        except Exception as e:
-            print(f"Erro ao buscar associados: {e}")
-            lista = []
+        # Solicita a matriz de contagem processada pelo controlador de fretamento
+        self.contagem_global = self.fretamento_controller.gerar_matriz_contagem()
 
         dias_uteis = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"]
-        #Estrutura os contadores zerados cruzando Dia x Sub-Turno
-        #IM (Ida Manhã), VM (Volta Manhã), IT (Ida Tarde), VT (Volta Tarde), IN (Ida Noite), VN (Volta Noite)
-        self.contagem_global = {dia: {"IM": 0, "VM": 0, "IT": 0, "VT": 0, "IN": 0, "VN": 0} for dia in dias_uteis}
-        
-        for u in lista:
-            if not u.dias_semana:
-                continue
-
-            # Separa o texto "Segunda,Terça" em uma lista real de palavras ['Segunda', 'Terça']
-            dias_aluno = [d.strip() for d in str(u.dias_semana).split(",")]
-            
-            # Obtém os turnos salvos no banco (usa "Noite" como padrão caso esteja nulo)
-            # Recuperação segura com valor padrão para evitar falhas caso o campo esteja nulo
-            turno_ida = getattr(u, 'turno_ida', 'Noite') if getattr(u, 'turno_ida', 'Noite') else "Noite"
-            turno_volta = getattr(u, 'turno_volta', 'Noite') if getattr(u, 'turno_volta', 'Noite') else "Noite"
-            
-            for dia in dias_aluno:
-                if dia in self.contagem_global:
-                    # Incrementa a contagem exata da IDA baseada no turno do aluno
-                    if turno_ida == "Manhã": self.contagem_global[dia]["IM"] += 1
-                    elif turno_ida == "Tarde": self.contagem_global[dia]["IT"] += 1
-                    elif turno_ida == "Noite": self.contagem_global[dia]["IN"] += 1
-                    
-                    # Incrementa a contagem exata da VOLTA baseada no turno do aluno
-                    if turno_volta == "Manhã": self.contagem_global[dia]["VM"] += 1
-                    elif turno_volta == "Tarde": self.contagem_global[dia]["VT"] += 1
-                    elif turno_volta == "Noite": self.contagem_global[dia]["VN"] += 1
-                        
-        # Despeja as somas calculadas dentro das linhas da Treeview
         for dia in dias_uteis:
             c = self.contagem_global[dia]
             self.tabela_frota.insert("", tk.END, values=(dia, c["IM"], c["VM"], c["IT"], c["VT"], c["IN"], c["VN"]))
-
+        
     def abrir_analise_veiculo(self):
-         #Abre uma janela de sugestão de frota otimizada para o dia selecionado 
+         #Abre a janela interna pedindo as decisões de veículos para o Controller 
         selecao = self.tabela_frota.selection() # Pega a linha que o usuário selecionou
         if not selecao:
             messagebox.showwarning("Aviso", "Por favor, selecione um dia da semana na tabela primeiro!")
@@ -107,14 +76,6 @@ class GerenciamentoFretamentoView:
         dia_selecionado = valores[0] #Extrai o nome do dia util clicado
         
         c = self.contagem_global[dia_selecionado] #Captura a contagem daquele dia em especifico 
-        
-
-        # --- SUB-FUNÇÃO: Aplica a faixa de dimensionamento ---
-        def calcular_veiculo(qtd):
-            if qtd == 0: return "Nenhum transporte necessário"
-            elif qtd <= 15: return "Alocar Van Executiva (Capacidade: 15)"
-            elif qtd <= 28: return "Alocar Micro-ônibus (Capacidade: 28)"
-            else: return "Alocar Ônibus Fretado Convencional"
             
         janela_sugestao = tk.Toplevel(self.window)
         janela_sugestao.title(f"Sugestão de Frota - {dia_selecionado}")
@@ -137,12 +98,19 @@ class GerenciamentoFretamentoView:
         tabela_interna.column("Veículo Recomendado", width=280, anchor="w")
         tabela_interna.pack(padx=15, pady=10, fill=tk.BOTH, expand=True)
         
+
+        # OTIMIZAÇÃO MVC: A View envia o pico de passageiros e o Controller devolve o texto do veículo resolvido
+        sugestao_manha = self.fretamento_controller.decidir_veiculo(max(c['IM'], c['VM']))
+        sugestao_tarde = self.fretamento_controller.decidir_veiculo(max(c['IT'], c['VT']))
+        sugestao_noite = self.fretamento_controller.decidir_veiculo(max(c['IN'], c['VN']))
+
+        
         # ALGORITMO DE OTIMIZAÇÃO (MÁXIMO): Usa a função max() para dimensionar o veículo
         # pelo maior número entre a Ida e a Volta daquele turno, evitando que falte espaço.
-        tabela_interna.insert("", tk.END, values=("Manhã", f"{c['IM']} ida / {c['VM']} volta", calcular_veiculo(max(c['IM'], c['VM']))))
-        tabela_interna.insert("", tk.END, values=("Tarde", f"{c['IT']} ida / {c['VT']} volta", calcular_veiculo(max(c['IT'], c['VT']))))
-        tabela_interna.insert("", tk.END, values=("Noite", f"{c['IN']} ida / {c['VN']} volta", calcular_veiculo(max(c['IN'], c['VN']))))
-        
+        tabela_interna.insert("", tk.END, values=("Manhã", f"{c['IM']} ida / {c['VM']} volta", sugestao_manha))
+        tabela_interna.insert("", tk.END, values=("Tarde", f"{c['IT']} ida / {c['VT']} volta", sugestao_tarde))
+        tabela_interna.insert("", tk.END, values=("Noite", f"{c['IN']} ida / {c['VN']} volta", sugestao_noite))
+
         tk.Button(janela_sugestao, text="Fechar Análise", font=("Arial", 9), width=15, command=janela_sugestao.destroy).pack(pady=15)
      
         
