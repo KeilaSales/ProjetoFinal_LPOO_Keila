@@ -8,7 +8,7 @@ class FretamentoController:
         self.associado_controller = associado_controller
 
     def gerar_matriz_contagem(self) -> dict:
-        """ Varre os dados recuperados do banco e monta o cruzamento Dia x Turno """
+        # Varre os dados recuperados do banco e monta o cruzamento Dia x Turno 
         try:
             # Busca a lista de objetos cadastrados diretamente do banco de dados
             lista = self.associado_controller.buscar_todos()

@@ -124,7 +124,7 @@ class InscricaoUsuarioView:
             messagebox.showwarning("Validação", "Selecione ao menos 1 dia da semana para o transporte!")
             return
 
-        info_turnos = f"Ida: {self.cb_ida.get()} | Volta: {self.cb_volta.get()}"
+        #info_turnos = f"Ida: {self.cb_ida.get()} | Volta: {self.cb_volta.get()}"
         
         # COMUNICAÇÃO MVC: Envia os dados higienizados ao controlador e aguarda o processamento
         sucesso, resultado = self.controller.cadastrar_universitario(
